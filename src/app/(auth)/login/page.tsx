@@ -14,11 +14,12 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const { t } = useLanguage();
-  const callbackUrl = searchParams.get('callbackUrl');
+  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
   
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     email: '',
@@ -27,12 +28,14 @@ function LoginForm() {
 
   // Redirect based on role after session is loaded
   useEffect(() => {
-    if (status === 'authenticated' && session?.user) {
-      const redirectUrl = callbackUrl || (session.user.role === 'ADMIN' ? '/admin' : '/dashboard');
-      router.push(redirectUrl);
-      router.refresh();
+    if (status === 'authenticated' && session?.user && !isRedirecting) {
+      setIsRedirecting(true);
+      const redirectUrl = session.user.role === 'ADMIN' ? '/admin' : callbackUrl;
+      
+      // Use window.location for more reliable redirect on Vercel
+      window.location.href = redirectUrl;
     }
-  }, [session, status, callbackUrl, router]);
+  }, [session, status, callbackUrl, isRedirecting]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,8 +52,11 @@ function LoginForm() {
       if (result?.error) {
         setError(result.error);
         setIsLoading(false);
+      } else if (result?.ok) {
+        // Immediate redirect after successful login
+        setIsRedirecting(true);
+        window.location.href = callbackUrl;
       }
-      // Redirect will be handled by useEffect after session updates
     } catch (err) {
       setError('Terjadi kesalahan. Silakan coba lagi.');
       setIsLoading(false);
@@ -60,19 +66,23 @@ function LoginForm() {
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
     try {
-      await signIn('google', { callbackUrl: callbackUrl || '/dashboard' });
+      await signIn('google', { callbackUrl });
     } catch (err) {
       setError('Gagal login dengan Google');
       setIsGoogleLoading(false);
     }
   };
 
-  // If already authenticated, show loading while redirecting
-  if (status === 'authenticated') {
+  // If already authenticated or redirecting, show loading
+  if (status === 'authenticated' || isRedirecting) {
     return (
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto mb-4"></div>
         <p className="text-foreground/60">Mengalihkan...</p>
+        <p className="text-foreground/40 text-sm mt-2">
+          Jika tidak redirect dalam 5 detik,{' '}
+          <a href={callbackUrl} className="text-primary-600 underline">klik di sini</a>
+        </p>
       </div>
     );
   }
