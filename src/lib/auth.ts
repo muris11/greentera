@@ -162,16 +162,26 @@ const authConfig: NextAuthConfig = {
       return token;
     },
     async session({ session, token }) {
+      console.log(
+        "📍 Session callback - token:",
+        JSON.stringify(token, null, 2)
+      );
       if (token && session.user) {
-        session.user.id = token.id as string;
+        session.user.id =
+          (token.id as string) || (token.email as string) || "unknown";
         session.user.role = (token.role as string) || "USER";
+        session.user.email = (token.email as string) || session.user.email;
       }
+      console.log(
+        "📍 Session callback - session:",
+        JSON.stringify(session, null, 2)
+      );
       return session;
     },
   },
   secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || DEV_SECRET,
   trustHost: true,
-  debug: process.env.NODE_ENV === "development",
+  debug: true, // Enable debug mode to see more logs
 };
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);

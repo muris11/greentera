@@ -1,53 +1,54 @@
-'use client';
+"use client";
 
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { useLanguage } from '@/lib/i18n/LanguageContext';
-import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
-import { signIn, useSession } from 'next-auth/react';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useState } from 'react';
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import { signIn, useSession } from "next-auth/react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const { t } = useLanguage();
-  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
-  
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
 
   // Redirect based on role after session is loaded
   useEffect(() => {
-    if (status === 'authenticated' && session?.user) {
-      const redirectUrl = session.user.role === 'ADMIN' ? '/admin' : callbackUrl;
+    if (status === "authenticated" && session?.user) {
+      const redirectUrl =
+        session.user.role === "ADMIN" ? "/admin" : callbackUrl;
       router.push(redirectUrl);
     }
   }, [status, session, callbackUrl, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsLoading(true);
 
     try {
       // Use redirect: true for server-side redirect (more reliable on Vercel)
-      await signIn('credentials', {
+      await signIn("credentials", {
         email: formData.email,
         password: formData.password,
         callbackUrl: callbackUrl,
         redirect: true,
       });
     } catch {
-      setError('Terjadi kesalahan. Silakan coba lagi.');
+      setError("Terjadi kesalahan. Silakan coba lagi.");
       setIsLoading(false);
     }
   };
@@ -55,22 +56,24 @@ function LoginForm() {
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
     try {
-      await signIn('google', { callbackUrl });
+      await signIn("google", { callbackUrl });
     } catch {
-      setError('Gagal login dengan Google');
+      setError("Gagal login dengan Google");
       setIsGoogleLoading(false);
     }
   };
 
   // If already authenticated, show loading
-  if (status === 'authenticated') {
+  if (status === "authenticated") {
     return (
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto mb-4"></div>
         <p className="text-foreground/60">Mengalihkan...</p>
         <p className="text-foreground/40 text-sm mt-2">
-          Jika tidak redirect dalam 5 detik,{' '}
-          <a href={callbackUrl} className="text-primary-600 underline">klik di sini</a>
+          Jika tidak redirect dalam 5 detik,{" "}
+          <a href={callbackUrl} className="text-primary-600 underline">
+            klik di sini
+          </a>
         </p>
       </div>
     );
@@ -79,10 +82,10 @@ function LoginForm() {
   return (
     <div>
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-foreground">{t.auth.loginTitle}</h2>
-        <p className="text-foreground/60 mt-2">
-          {t.auth.loginSubtitle}
-        </p>
+        <h2 className="text-2xl font-bold text-foreground">
+          {t.auth.loginTitle}
+        </h2>
+        <p className="text-foreground/60 mt-2">{t.auth.loginSubtitle}</p>
       </div>
 
       {error && (
@@ -104,10 +107,12 @@ function LoginForm() {
 
         <Input
           label={t.auth.password}
-          type={showPassword ? 'text' : 'password'}
+          type={showPassword ? "text" : "password"}
           placeholder="Masukkan password"
           value={formData.password}
-          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, password: e.target.value })
+          }
           leftIcon={<Lock size={18} />}
           rightIcon={
             <button
@@ -135,7 +140,7 @@ function LoginForm() {
         </div>
 
         <Button type="submit" className="w-full" isLoading={isLoading}>
-          {isLoading ? 'Memproses...' : t.auth.loginTitle}
+          {isLoading ? "Memproses..." : t.auth.loginTitle}
         </Button>
       </form>
 
@@ -179,7 +184,7 @@ function LoginForm() {
       </Button>
 
       <p className="text-center mt-6 text-foreground/60">
-        {t.auth.noAccount}{' '}
+        {t.auth.noAccount}{" "}
         <Link
           href="/register"
           className="text-primary-600 hover:text-primary-700 font-semibold"

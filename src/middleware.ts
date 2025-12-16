@@ -35,12 +35,18 @@ export async function middleware(request: NextRequest) {
   }
 
   // Get token from JWT (Edge compatible) with dev secret fallback
-  const token = await getToken({ 
-    req: request, 
-    secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || DEV_SECRET,
-  });
+  let token = null;
+  try {
+    token = await getToken({ 
+      req: request, 
+      secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || DEV_SECRET,
+    });
+  } catch (error) {
+    console.error('Middleware getToken error:', error);
+  }
   
-  const isLoggedIn = !!token;
+  // Check if user is logged in - token exists and has either id or email
+  const isLoggedIn = !!(token && (token.id || token.email));
   const isAdmin = token?.role === 'ADMIN';
 
   // Check if trying to access auth pages while logged in
