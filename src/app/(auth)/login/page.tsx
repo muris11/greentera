@@ -43,20 +43,13 @@ function LoginForm() {
     setIsLoading(true);
 
     try {
-      const result = await signIn('credentials', {
+      // Use redirect: true for server-side redirect (more reliable on Vercel)
+      await signIn('credentials', {
         email: formData.email,
         password: formData.password,
-        redirect: false,
+        callbackUrl: callbackUrl,
+        redirect: true,
       });
-
-      if (result?.error) {
-        setError(result.error);
-        setIsLoading(false);
-      } else if (result?.ok) {
-        // Immediate redirect after successful login
-        setIsRedirecting(true);
-        window.location.href = callbackUrl;
-      }
     } catch (err) {
       setError('Terjadi kesalahan. Silakan coba lagi.');
       setIsLoading(false);
