@@ -6,11 +6,23 @@ const DEV_SECRET =
 
 export async function GET(request: NextRequest) {
   try {
-    const token = await getToken({
+    // Try with __Secure- prefix first (production HTTPS)
+    let token = await getToken({
       req: request,
       secret:
         process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || DEV_SECRET,
+      cookieName: "__Secure-authjs.session-token",
     });
+
+    // Fallback to non-secure cookie name (localhost)
+    if (!token) {
+      token = await getToken({
+        req: request,
+        secret:
+          process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || DEV_SECRET,
+        cookieName: "authjs.session-token",
+      });
+    }
 
     // Get all cookies for debugging
     const cookies = request.cookies.getAll();
