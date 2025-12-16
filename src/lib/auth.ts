@@ -8,6 +8,28 @@ import prisma from "./prisma";
 const DEV_SECRET =
   "greentera-dev-secret-change-in-production-12345678901234567890";
 
+// Helper function to add timeout to database queries
+async function queryWithTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number = 5000
+): Promise<T | null> {
+  return Promise.race([
+    promise,
+    new Promise<null>((_, reject) =>
+      setTimeout(
+        () => reject(new Error(`Database query timeout (${timeoutMs}ms)`)),
+        timeoutMs
+      )
+    ),
+  ]).catch((err) => {
+    console.error(
+      "Query timeout or error:",
+      err instanceof Error ? err.message : String(err)
+    );
+    return null;
+  });
+}
+
 const authConfig: NextAuthConfig = {
   session: {
     strategy: "jwt",
@@ -78,28 +100,40 @@ const authConfig: NextAuthConfig = {
       // For Google OAuth, ensure user exists in database
       if (account?.provider === "google" && user.email) {
         try {
-          const existingUser = await prisma.user.findUnique({
-            where: { email: user.email },
-          });
+          const existingUser = await queryWithTimeout(
+            prisma.user.findUnique({
+              where: { email: user.email },
+            }),
+            5000
+          );
 
           if (!existingUser) {
             // Create new user with default gamification stats
-            await prisma.user.create({
-              data: {
-                email: user.email,
-                name: user.name || "User",
-                image: user.image,
-                role: "USER",
-                points: 0,
-                // Default stats are set by Prisma schema
-              },
-            });
+            const created = await queryWithTimeout(
+              prisma.user.create({
+                data: {
+                  email: user.email,
+                  name: user.name || "User",
+                  image: user.image,
+                  role: "USER",
+                  points: 0,
+                },
+              }),
+              5000
+            );
+            if (!created) {
+              console.error("❌ Failed to create user - timeout");
+              return false;
+            }
           } else if (!existingUser.image && user.image) {
             // Update image if user exists but doesn't have one
-            await prisma.user.update({
-              where: { email: user.email },
-              data: { image: user.image },
-            });
+            await queryWithTimeout(
+              prisma.user.update({
+                where: { email: user.email },
+                data: { image: user.image },
+              }),
+              5000
+            );
           }
           return true;
         } catch (error) {
@@ -116,10 +150,13 @@ const authConfig: NextAuthConfig = {
       // For Google OAuth, get the database user ID
       if (account?.provider === "google" && user?.email) {
         try {
-          const dbUser = await prisma.user.findUnique({
-            where: { email: user.email },
-            select: { id: true, role: true },
-          });
+          const dbUser = await queryWithTimeout(
+            prisma.user.findUnique({
+              where: { email: user.email },
+              select: { id: true, role: true },
+            }),
+            5000
+          );
           if (dbUser) {
             token.id = dbUser.id;
             token.role = dbUser.role;
@@ -128,12 +165,18 @@ const authConfig: NextAuthConfig = {
               "❌ User not found in database after Google login:",
               user.email
             );
+            // Fallback: use email as ID if database query failed/timeout
+            token.id = user.email;
+            token.role = "USER";
           }
         } catch (error) {
           console.error(
             "❌ JWT callback error:",
             error instanceof Error ? error.message : String(error)
           );
+          // Still return token to prevent complete failure
+          token.id = user.email;
+          token.role = "USER";
         }
       } else if (user) {
         // For credentials login
