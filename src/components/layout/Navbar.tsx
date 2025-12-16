@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
-import { NotificationDropdown } from '@/components/ui/NotificationDropdown';
-import { useLanguage } from '@/lib/i18n/LanguageContext';
-import { Menu, Search } from 'lucide-react';
-import { signOut } from 'next-auth/react';
-import Image from 'next/image';
-import { useState } from 'react';
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { NotificationDropdown } from "@/components/ui/NotificationDropdown";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { Menu, Search } from "lucide-react";
+import { signOut } from "next-auth/react";
+import Image from "next/image";
+import { useState } from "react";
 
 interface NavbarProps {
   onMenuClick?: () => void;
@@ -21,12 +21,13 @@ export function Navbar({ onMenuClick, user }: NavbarProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const { t } = useLanguage();
 
-  const initials = user?.name
-    ?.split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2) || 'U';
+  const initials =
+    user?.name
+      ?.split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2) || "U";
 
   return (
     <header className="sticky top-0 z-20 glass-card-static rounded-none border-x-0 border-t-0 px-4 py-3 md:px-6">
@@ -68,7 +69,7 @@ export function Navbar({ onMenuClick, user }: NavbarProps) {
               {user?.image ? (
                 <Image
                   src={user.image}
-                  alt={user.name || 'User'}
+                  alt={user.name || "User"}
                   width={36}
                   height={36}
                   className="rounded-lg"
@@ -79,8 +80,10 @@ export function Navbar({ onMenuClick, user }: NavbarProps) {
                 </div>
               )}
               <div className="hidden lg:block text-left">
-                <p className="text-sm font-medium">{user?.name || 'User'}</p>
-                <p className="text-xs text-foreground/60">{user?.email || 'user@email.com'}</p>
+                <p className="text-sm font-medium">{user?.name || "User"}</p>
+                <p className="text-xs text-foreground/60">
+                  {user?.email || "user@email.com"}
+                </p>
               </div>
             </button>
 
@@ -101,8 +104,8 @@ export function Navbar({ onMenuClick, user }: NavbarProps) {
                 </a>
                 <div className="h-px bg-black/5 my-2" />
 
-                <button 
-                  onClick={() => signOut({ callbackUrl: '/login' })}
+                <button
+                  onClick={() => signOut({ callbackUrl: "/" })}
                   className="w-full text-left px-3 py-2 text-sm rounded-lg text-red-500 hover:bg-red-50 transition font-medium"
                 >
                   {t.navbar.logout}

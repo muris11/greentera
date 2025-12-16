@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { NotificationDropdown } from '@/components/ui/NotificationDropdown';
-import { LogOut, Menu } from 'lucide-react';
-import { signOut } from 'next-auth/react';
-import { useState } from 'react';
+import { NotificationDropdown } from "@/components/ui/NotificationDropdown";
+import { LogOut, Menu } from "lucide-react";
+import { signOut } from "next-auth/react";
+import { useState } from "react";
 
 interface AdminNavbarProps {
   onMenuClick: () => void;
@@ -27,7 +27,9 @@ export function AdminNavbar({ onMenuClick, user }: AdminNavbarProps) {
         >
           <Menu size={24} />
         </button>
-        <h1 className="text-foreground font-semibold hidden sm:block">Admin Dashboard</h1>
+        <h1 className="text-foreground font-semibold hidden sm:block">
+          Admin Dashboard
+        </h1>
       </div>
 
       {/* Right Side */}
@@ -42,10 +44,12 @@ export function AdminNavbar({ onMenuClick, user }: AdminNavbarProps) {
             className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-foreground/5 transition-colors"
           >
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-semibold text-sm shadow-md">
-              {user.name?.charAt(0).toUpperCase() || 'A'}
+              {user.name?.charAt(0).toUpperCase() || "A"}
             </div>
             <div className="hidden sm:block text-left">
-              <p className="text-sm font-medium text-foreground">{user.name || 'Admin'}</p>
+              <p className="text-sm font-medium text-foreground">
+                {user.name || "Admin"}
+              </p>
               <p className="text-xs text-foreground/50">{user.email}</p>
             </div>
           </button>
@@ -58,7 +62,7 @@ export function AdminNavbar({ onMenuClick, user }: AdminNavbarProps) {
               />
               <div className="absolute right-0 top-full mt-2 w-48 glass-card-static border border-foreground/10 rounded-xl shadow-xl z-20 overflow-hidden animate-fade-in">
                 <button
-                  onClick={() => signOut({ callbackUrl: '/login' })}
+                  onClick={() => signOut({ callbackUrl: "/" })}
                   className="w-full flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 transition-colors"
                 >
                   <LogOut size={18} />
