@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent } from '@/components/ui/Card';
-import { ArrowLeft, Calendar, Loader2, Share2 } from 'lucide-react';
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent } from "@/components/ui/Card";
+import { ArrowLeft, Calendar, Loader2, Share2 } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface Article {
   id: string;
@@ -31,10 +31,10 @@ export default function ArticleDetailPage() {
           const data = await res.json();
           setArticle(data);
         } else {
-          setError('Artikel tidak ditemukan');
+          setError("Artikel tidak ditemukan");
         }
       } catch (err) {
-        setError('Terjadi kesalahan saat memuat artikel');
+        setError("Terjadi kesalahan saat memuat artikel");
       } finally {
         setLoading(false);
       }
@@ -57,7 +57,9 @@ export default function ArticleDetailPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
         <h2 className="text-2xl font-bold mb-2">Oops!</h2>
-        <p className="text-foreground/60 mb-6">{error || 'Artikel tidak ditemukan'}</p>
+        <p className="text-foreground/60 mb-6">
+          {error || "Artikel tidak ditemukan"}
+        </p>
         <Link href="/education">
           <Button>
             <ArrowLeft size={18} className="mr-2" />
@@ -70,7 +72,10 @@ export default function ArticleDetailPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <Link href="/education" className="inline-flex items-center text-foreground/60 hover:text-primary-600 mb-6 transition">
+      <Link
+        href="/education"
+        className="inline-flex items-center text-foreground/60 hover:text-primary-600 mb-6 transition"
+      >
         <ArrowLeft size={18} className="mr-2" />
         Kembali ke Daftar Artikel
       </Link>
@@ -84,14 +89,14 @@ export default function ArticleDetailPage() {
             </span>
             <span className="text-foreground/40 text-sm flex items-center gap-1">
               <Calendar size={14} />
-              {new Date(article.createdAt).toLocaleDateString('id-ID', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
+              {new Date(article.createdAt).toLocaleDateString("id-ID", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
               })}
             </span>
           </div>
-          
+
           <h1 className="text-3xl md:text-5xl font-bold leading-tight">
             {article.title}
           </h1>
@@ -100,8 +105,8 @@ export default function ArticleDetailPage() {
         {/* Featured Image */}
         {article.imageUrl && (
           <div className="aspect-video w-full rounded-2xl overflow-hidden bg-foreground/5 shadow-lg">
-            <img 
-              src={article.imageUrl} 
+            <img
+              src={article.imageUrl}
               alt={article.title}
               className="w-full h-full object-cover"
             />
@@ -126,7 +131,7 @@ export default function ArticleDetailPage() {
               <CardContent className="p-6 space-y-4">
                 <h3 className="font-bold text-lg">Bagikan Artikel</h3>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="icon" className="rounded-full">
+                  <Button variant="ghost" size="icon" className="rounded-full">
                     <Share2 size={18} />
                   </Button>
                   {/* Add more social share buttons here if needed */}
@@ -136,9 +141,13 @@ export default function ArticleDetailPage() {
 
             <Card className="bg-primary-50 border-primary-100">
               <CardContent className="p-6">
-                <h3 className="font-bold text-lg text-primary-900 mb-2">Tahukah Anda?</h3>
+                <h3 className="font-bold text-lg text-primary-900 mb-2">
+                  Tahukah Anda?
+                </h3>
                 <p className="text-primary-800/80 text-sm">
-                  Membaca artikel edukasi dapat meningkatkan kesadaran lingkungan dan membantu Anda mengumpulkan lebih banyak poin di Greentera!
+                  Membaca artikel edukasi dapat meningkatkan kesadaran
+                  lingkungan dan membantu Anda mengumpulkan lebih banyak poin di
+                  Greentera!
                 </p>
               </CardContent>
             </Card>
