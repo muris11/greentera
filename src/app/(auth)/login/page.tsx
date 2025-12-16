@@ -19,7 +19,6 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [isRedirecting, setIsRedirecting] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     email: '',
@@ -28,14 +27,11 @@ function LoginForm() {
 
   // Redirect based on role after session is loaded
   useEffect(() => {
-    if (status === 'authenticated' && session?.user && !isRedirecting) {
-      setIsRedirecting(true);
+    if (status === 'authenticated' && session?.user) {
       const redirectUrl = session.user.role === 'ADMIN' ? '/admin' : callbackUrl;
-      
-      // Use window.location for more reliable redirect on Vercel
-      window.location.href = redirectUrl;
+      router.push(redirectUrl);
     }
-  }, [session, status, callbackUrl, isRedirecting]);
+  }, [status, session, callbackUrl, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,7 +46,7 @@ function LoginForm() {
         callbackUrl: callbackUrl,
         redirect: true,
       });
-    } catch (err) {
+    } catch {
       setError('Terjadi kesalahan. Silakan coba lagi.');
       setIsLoading(false);
     }
@@ -60,14 +56,14 @@ function LoginForm() {
     setIsGoogleLoading(true);
     try {
       await signIn('google', { callbackUrl });
-    } catch (err) {
+    } catch {
       setError('Gagal login dengan Google');
       setIsGoogleLoading(false);
     }
   };
 
-  // If already authenticated or redirecting, show loading
-  if (status === 'authenticated' || isRedirecting) {
+  // If already authenticated, show loading
+  if (status === 'authenticated') {
     return (
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto mb-4"></div>
