@@ -97,19 +97,31 @@ const authConfig: NextAuthConfig = {
   ],
   callbacks: {
     async signIn({ user, account }) {
-      // For Google OAuth, ensure user exists in database
-      if (account?.provider === "google" && user.email) {
+      // For Google OAuth, skip database check for now - just allow signin
+      // Database operations will happen in JWT callback if needed
+      if (account?.provider === "google") {
+        console.log("✅ Google OAuth signIn - user:", user.email);
+        return true; // Allow signin immediately
+      }
+      return true;
+    },
+    async jwt({ token, user, account }) {
+      // For Google OAuth, create/get user from database
+      if (account?.provider === "google" && user?.email) {
         try {
-          const existingUser = await queryWithTimeout(
+          // Try to find or create user
+          let dbUser = await queryWithTimeout(
             prisma.user.findUnique({
               where: { email: user.email },
+              select: { id: true, role: true },
             }),
-            5000
+            3000
           );
 
-          if (!existingUser) {
-            // Create new user with default gamification stats
-            const created = await queryWithTimeout(
+          // If not found, create new user
+          if (!dbUser) {
+            console.log("Creating new user from Google OAuth:", user.email);
+            dbUser = await queryWithTimeout(
               prisma.user.create({
                 data: {
                   email: user.email,
@@ -119,63 +131,27 @@ const authConfig: NextAuthConfig = {
                   points: 0,
                 },
               }),
-              5000
+              3000
             );
-            if (!created) {
-              console.error("❌ Failed to create user - timeout");
-              return false;
-            }
-          } else if (!existingUser.image && user.image) {
-            // Update image if user exists but doesn't have one
-            await queryWithTimeout(
-              prisma.user.update({
-                where: { email: user.email },
-                data: { image: user.image },
-              }),
-              5000
-            );
+          } else if (!dbUser.id) {
+            // If ID is missing, use email as temporary ID
+            console.warn("User found but ID missing, using email as ID");
+            dbUser.id = user.email;
           }
-          return true;
-        } catch (error) {
-          console.error(
-            "❌ Google Auth Error - signIn:",
-            error instanceof Error ? error.message : String(error)
-          );
-          return false;
-        }
-      }
-      return true;
-    },
-    async jwt({ token, user, account }) {
-      // For Google OAuth, get the database user ID
-      if (account?.provider === "google" && user?.email) {
-        try {
-          const dbUser = await queryWithTimeout(
-            prisma.user.findUnique({
-              where: { email: user.email },
-              select: { id: true, role: true },
-            }),
-            5000
-          );
+
           if (dbUser) {
             token.id = dbUser.id;
-            token.role = dbUser.role;
-          } else {
-            console.error(
-              "❌ User not found in database after Google login:",
-              user.email
-            );
-            // Fallback: use email as ID if database query failed/timeout
-            token.id = user.email;
-            token.role = "USER";
+            token.role = dbUser.role || "USER";
+            token.email = user.email;
           }
         } catch (error) {
           console.error(
-            "❌ JWT callback error:",
+            "⚠️ JWT callback database error:",
             error instanceof Error ? error.message : String(error)
           );
-          // Still return token to prevent complete failure
+          // Fallback - use email as ID if database fails
           token.id = user.email;
+          token.email = user.email;
           token.role = "USER";
         }
       } else if (user) {
