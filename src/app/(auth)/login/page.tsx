@@ -40,13 +40,20 @@ function LoginForm() {
     setIsLoading(true);
 
     try {
-      // Use redirect: true for server-side redirect (more reliable on Vercel)
-      await signIn("credentials", {
+      // Use redirect: false to handle role-based redirect manually
+      const result = await signIn("credentials", {
         email: formData.email,
         password: formData.password,
-        callbackUrl: callbackUrl,
-        redirect: true,
+        redirect: false,
       });
+
+      if (result?.error) {
+        setError("Email atau password salah");
+        setIsLoading(false);
+        return;
+      }
+
+      // Redirect will be handled by useEffect after session updates
     } catch {
       setError("Terjadi kesalahan. Silakan coba lagi.");
       setIsLoading(false);
@@ -56,7 +63,9 @@ function LoginForm() {
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
     try {
-      await signIn("google", { callbackUrl });
+      // Use redirect: false to handle role-based redirect manually
+      await signIn("google", { redirect: false });
+      // Redirect will be handled by useEffect after session updates
     } catch {
       setError("Gagal login dengan Google");
       setIsGoogleLoading(false);
@@ -65,13 +74,14 @@ function LoginForm() {
 
   // If already authenticated, show loading
   if (status === "authenticated") {
+    const redirectUrl = session?.user?.role === "ADMIN" ? "/admin" : callbackUrl;
     return (
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto mb-4"></div>
         <p className="text-foreground/60">Mengalihkan...</p>
         <p className="text-foreground/40 text-sm mt-2">
           Jika tidak redirect dalam 5 detik,{" "}
-          <a href={callbackUrl} className="text-primary-600 underline">
+          <a href={redirectUrl} className="text-primary-600 underline">
             klik di sini
           </a>
         </p>
